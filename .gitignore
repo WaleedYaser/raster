@@ -1,0 +1,4 @@
+build
+vsbuild
+compile_commands.json
+.clangd
