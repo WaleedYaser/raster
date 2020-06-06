@@ -78,9 +78,11 @@ canvas_loop(Canvas &self, bool &mouse_down, int32_t &mouse_x, int32_t &mouse_y)
             return false;
 
         case WM_LBUTTONDOWN:
+            SetCapture(self.handle);
             mouse_down = true;
             break;
         case WM_LBUTTONUP:
+            SetCapture(nullptr);
             mouse_down = false;
             break;
         }
