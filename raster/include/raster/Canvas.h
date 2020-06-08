@@ -1,13 +1,20 @@
 #pragma once
 
+#include "raster/Input.h"
+
 #include <Windows.h>
 #include <stdint.h>
+
 
 struct Canvas
 {
     HWND handle;
+
     uint32_t width, height;
     uint8_t *framebuffer;
+
+    Input input;
+    Input _last_input;
 };
 
 Canvas
@@ -17,7 +24,7 @@ void
 canvas_free(Canvas &self);
 
 bool
-canvas_loop(Canvas &self, bool &mouse_down, int32_t &mouse_x, int32_t &mouse_y);
+canvas_loop(Canvas &self);
 
 void
 canvas_flush(Canvas &self);

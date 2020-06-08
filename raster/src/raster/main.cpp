@@ -14,29 +14,47 @@ int WinMain(
 
     std::vector<std::vector<int32_t>> mouse_segments;
 
-    bool new_segment = true;
-    bool mouse_down  = false;
-    int32_t mouse_x, mouse_y;
-    while (canvas_loop(canvas, mouse_down, mouse_x, mouse_y))
+    float scale = 1.0f;
+    while (canvas_loop(canvas))
     {
-        raster_clear(canvas.framebuffer, canvas.width, canvas.height, 30, 30, 30);
+        char buffer[1000];
+        wsprintf(buffer, "%d\n", canvas.input.mouse_wheel);
+        OutputDebugString(buffer);
 
-        if (mouse_down)
+        if (canvas.input.space.pressed)
         {
-            if (new_segment)
+            scale = 1.0f;
+        }
+
+        if (canvas.input.mouse_wheel > 0)
+            scale += 0.2f;
+        else if (canvas.input.mouse_wheel < 0 && scale > 0.3f)
+            scale -= 0.2f;
+
+        // handle input
+        if (canvas.input.mouse_left.pressed)
+        {
+            mouse_segments.push_back(std::vector<int32_t>());
+        }
+        else if (canvas.input.mouse_left.down)
+        {
+            mouse_segments.back().push_back(canvas.input.mouse_x / scale);
+            mouse_segments.back().push_back(canvas.input.mouse_y / scale);
+        }
+        else if (canvas.input.mouse_mid.down)
+        {
+            for (size_t i = 0; i < mouse_segments.size(); ++i)
             {
-              mouse_segments.push_back(std::vector<int32_t>());
-              new_segment = false;
+                for (size_t j = 0; j + 1 < mouse_segments[i].size(); j += 2)
+                {
+                    mouse_segments[i][j] += (canvas.input.mouse_dx / scale);
+                    mouse_segments[i][j + 1] += (canvas.input.mouse_dy / scale);
+                }
             }
-
-            mouse_segments.back().push_back(mouse_x);
-            mouse_segments.back().push_back(mouse_y);
-        }
-        else
-        {
-            new_segment = true;
         }
 
+        // rendering
+        raster_clear(canvas.framebuffer, canvas.width, canvas.height, 30, 30, 30);
         for (const auto &v : mouse_segments)
         {
             if (v.size() > 3)
@@ -50,17 +68,17 @@ int WinMain(
                     int32_t y1 = v[i + 1];
 
                     if (
-                        x0 >= 0 && x0 < canvas.width && y0 >= 0 && y0 < canvas.height &&
-                        x1 >= 0 && x1 < canvas.width && y1 >= 0 && y1 < canvas.height)
+                        x0 * scale >= 0 && x0 * scale < canvas.width && y0 * scale >= 0 && y0 * scale < canvas.height &&
+                        x1 * scale >= 0 && x1 * scale < canvas.width && y1 * scale >= 0 && y1 * scale < canvas.height)
                     {
                         raster_line(
                             canvas.framebuffer, canvas.width, canvas.height,
-                            x0, y0, x1, y1, 200, 200, 200);
+                            x0 * scale, y0 * scale, x1 * scale, y1 * scale,
+                            200, 200, 200);
                     }
                 }
             }
         }
-
         canvas_flush(canvas);
     }
 

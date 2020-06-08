@@ -1,8 +1,11 @@
 add_executable(raster
     WIN32
+
     include/raster/Canvas.h
-    src/raster/Canvas.cpp
+    include/raster/Input.h
     include/raster/Raster.h
+
+    src/raster/Canvas.cpp
     src/raster/Raster.cpp
     src/raster/main.cpp)
 

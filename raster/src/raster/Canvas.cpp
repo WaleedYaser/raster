@@ -41,7 +41,7 @@ canvas_new(const char *title, uint32_t width, uint32_t height)
     RECT rect;
     GetClientRect(hwnd, &rect);
 
-    Canvas self;
+    Canvas self = {};
     self.handle = hwnd;
     self.width  = rect.right - rect.left;
     self.height = rect.bottom - rect.top;
@@ -64,8 +64,14 @@ canvas_free(Canvas &self)
 }
 
 bool
-canvas_loop(Canvas &self, bool &mouse_down, int32_t &mouse_x, int32_t &mouse_y)
+canvas_loop(Canvas &self)
 {
+    self._last_input = self.input;
+    self.input = Input{};
+
+    for (int i = 0; i < self.input.btn_count; ++i)
+        self.input.btn_array[i].down = self._last_input.btn_array[i].down;
+
     MSG msg = {};
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
@@ -79,12 +85,69 @@ canvas_loop(Canvas &self, bool &mouse_down, int32_t &mouse_x, int32_t &mouse_y)
 
         case WM_LBUTTONDOWN:
             SetCapture(self.handle);
-            mouse_down = true;
+            self.input.mouse_left.pressed = true;
+            self.input.mouse_left.down    = true;
+            self.input.mouse_left.pressed_count++;
             break;
         case WM_LBUTTONUP:
             SetCapture(nullptr);
-            mouse_down = false;
+            self.input.mouse_left.released = true;
+            self.input.mouse_left.down     = false;
+            self.input.mouse_left.released_count++;
             break;
+
+        case WM_RBUTTONDOWN:
+            SetCapture(self.handle);
+            self.input.mouse_right.pressed = true;
+            self.input.mouse_right.down    = true;
+            self.input.mouse_right.pressed_count++;
+            break;
+        case WM_RBUTTONUP:
+            SetCapture(nullptr);
+            self.input.mouse_right.released = true;
+            self.input.mouse_right.down     = false;
+            self.input.mouse_right.released_count++;
+            break;
+
+        case WM_MBUTTONDOWN:
+            SetCapture(self.handle);
+            self.input.mouse_mid.pressed = true;
+            self.input.mouse_mid.down    = true;
+            self.input.mouse_mid.pressed_count++;
+            break;
+        case WM_MBUTTONUP:
+            SetCapture(nullptr);
+            self.input.mouse_mid.released = true;
+            self.input.mouse_mid.down     = false;
+            self.input.mouse_mid.released_count++;
+            break;
+
+        case WM_MOUSEWHEEL:
+            self.input.mouse_wheel = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+            break;
+
+        case WM_KEYUP:
+        case WM_KEYDOWN:
+        {
+            bool was_down = msg.lParam & (1 << 30);
+            bool is_down = (msg.lParam & (1 << 31)) == 0;
+            if (was_down != is_down)
+            {
+                switch (msg.wParam)
+                {
+                case VK_SPACE:
+                    self.input.space.pressed = is_down;
+                    self.input.space.pressed_count += is_down;
+
+                    self.input.space.released = was_down;
+                    self.input.space.released_count += was_down;
+
+                    self.input.space.down = is_down;
+                    break;
+                }
+            }
+            break;
+        }
         }
     }
 
@@ -108,8 +171,11 @@ canvas_loop(Canvas &self, bool &mouse_down, int32_t &mouse_x, int32_t &mouse_y)
     POINT point;
     GetCursorPos(&point);
     ScreenToClient(self.handle, &point);
-    mouse_x = point.x;
-    mouse_y = point.y;
+
+    self.input.mouse_x = point.x;
+    self.input.mouse_y = point.y;
+    self.input.mouse_dx = point.x - self._last_input.mouse_x;
+    self.input.mouse_dy = point.y - self._last_input.mouse_y;
 
     return true;
 }
