@@ -5,16 +5,14 @@
 #include <Windows.h>
 #include <stdint.h>
 
-
 struct Canvas
 {
-    HWND handle;
-
     uint32_t width, height;
     uint8_t *framebuffer;
 
     Input input;
     Input _last_input;
+    HWND  _handle;
 };
 
 Canvas

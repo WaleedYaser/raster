@@ -42,7 +42,7 @@ canvas_new(const char *title, uint32_t width, uint32_t height)
     GetClientRect(hwnd, &rect);
 
     Canvas self = {};
-    self.handle = hwnd;
+    self._handle = hwnd;
     self.width  = rect.right - rect.left;
     self.height = rect.bottom - rect.top;
 
@@ -60,7 +60,7 @@ void
 canvas_free(Canvas &self)
 {
     VirtualFree(self.framebuffer, 0, MEM_RELEASE);
-    DestroyWindow(self.handle);
+    DestroyWindow(self._handle);
 }
 
 bool
@@ -84,7 +84,7 @@ canvas_loop(Canvas &self)
             return false;
 
         case WM_LBUTTONDOWN:
-            SetCapture(self.handle);
+            SetCapture(self._handle);
             self.input.mouse_left.pressed = true;
             self.input.mouse_left.down    = true;
             self.input.mouse_left.pressed_count++;
@@ -97,7 +97,7 @@ canvas_loop(Canvas &self)
             break;
 
         case WM_RBUTTONDOWN:
-            SetCapture(self.handle);
+            SetCapture(self._handle);
             self.input.mouse_right.pressed = true;
             self.input.mouse_right.down    = true;
             self.input.mouse_right.pressed_count++;
@@ -110,7 +110,7 @@ canvas_loop(Canvas &self)
             break;
 
         case WM_MBUTTONDOWN:
-            SetCapture(self.handle);
+            SetCapture(self._handle);
             self.input.mouse_mid.pressed = true;
             self.input.mouse_mid.down    = true;
             self.input.mouse_mid.pressed_count++;
@@ -152,7 +152,7 @@ canvas_loop(Canvas &self)
     }
 
     RECT rect;
-    GetClientRect(self.handle, &rect);
+    GetClientRect(self._handle, &rect);
     uint32_t width  = rect.right - rect.left;
     uint32_t height = rect.bottom - rect.top;
 
@@ -170,7 +170,7 @@ canvas_loop(Canvas &self)
 
     POINT point;
     GetCursorPos(&point);
-    ScreenToClient(self.handle, &point);
+    ScreenToClient(self._handle, &point);
 
     self.input.mouse_x = point.x;
     self.input.mouse_y = point.y;
@@ -183,7 +183,7 @@ canvas_loop(Canvas &self)
 void
 canvas_flush(Canvas &self)
 {
-    HDC hdc = GetDC(self.handle);
+    HDC hdc = GetDC(self._handle);
 
     BITMAPINFOHEADER bmi_header = {};
     bmi_header.biSize        = sizeof(bmi_header);
@@ -207,6 +207,6 @@ canvas_flush(Canvas &self)
 
     assert(res && "StretchDIBits failed");
 
-    res = ReleaseDC(self.handle, hdc);
+    res = ReleaseDC(self._handle, hdc);
     assert(res && "ReleaseCC failed");
 }

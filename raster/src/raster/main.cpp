@@ -1,6 +1,7 @@
 #include "raster/Canvas.h"
 #include "raster/Raster.h"
 
+#include <Windows.h>
 #include <vector>
 
 int WinMain(
@@ -55,6 +56,20 @@ int WinMain(
 
         // rendering
         raster_clear(canvas.framebuffer, canvas.width, canvas.height, 30, 30, 30);
+
+        raster_triangle(
+            canvas.framebuffer, canvas.width, canvas.height,
+            300, 100, 500, 500, 700, 300,
+            200, 0, 0);
+        raster_triangle(
+            canvas.framebuffer, canvas.width, canvas.height,
+            300, 100, 700, 300, 900, 200,
+            0, 200, 0);
+        raster_triangle(
+            canvas.framebuffer, canvas.width, canvas.height,
+            500, 500, 900, 200, 700, 300,
+            0, 0, 200);
+
         for (const auto &v : mouse_segments)
         {
             if (v.size() > 3)
