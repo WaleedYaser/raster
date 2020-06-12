@@ -136,13 +136,31 @@ canvas_loop(Canvas &self)
                 switch (msg.wParam)
                 {
                 case VK_SPACE:
-                    self.input.space.pressed = is_down;
-                    self.input.space.pressed_count += is_down;
+                    self.input.key_space.pressed = is_down;
+                    self.input.key_space.pressed_count += is_down;
 
-                    self.input.space.released = was_down;
-                    self.input.space.released_count += was_down;
+                    self.input.key_space.released = was_down;
+                    self.input.key_space.released_count += was_down;
 
-                    self.input.space.down = is_down;
+                    self.input.key_space.down = is_down;
+                    break;
+                case 'G':
+                    self.input.key_g.pressed = is_down;
+                    self.input.key_g.pressed_count += is_down;
+
+                    self.input.key_g.released = was_down;
+                    self.input.key_g.released_count += was_down;
+
+                    self.input.key_g.down = is_down;
+                    break;
+                case 'P':
+                    self.input.key_p.pressed = is_down;
+                    self.input.key_p.pressed_count += is_down;
+
+                    self.input.key_p.released = was_down;
+                    self.input.key_p.released_count += was_down;
+
+                    self.input.key_p.down = is_down;
                     break;
                 }
             }

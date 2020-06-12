@@ -18,7 +18,7 @@ struct Input
     int32_t mouse_dx, mouse_dy;
     int32_t mouse_wheel;
 
-    static constexpr uint32_t btn_count = 4;
+    static constexpr uint32_t btn_count = 6;
     union
     {
         struct
@@ -27,7 +27,9 @@ struct Input
             Btn mouse_right;
             Btn mouse_mid;
 
-            Btn space;
+            Btn key_space;
+            Btn key_g;
+            Btn key_p;
         };
 
         Btn btn_array[btn_count];
