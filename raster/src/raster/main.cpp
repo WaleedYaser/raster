@@ -1,5 +1,10 @@
 #include "raster/Canvas.h"
 #include "raster/Raster.h"
+#include "raster/Cam.h"
+#include "raster/Image.h"
+
+#include "raster/Vec3.h"
+#include "raster/Mat4.h"
 
 #include <Windows.h>
 #include <vector>
@@ -11,15 +16,41 @@ int WinMain(
     int       nShowCmd
 )
 {
+    Image im = image_load("data/dog.jpg");
+    for (int j = 0; j < im.h; ++j)
+        for (int i = 0; i < im.w; ++i)
+            image_pixel_set(im, i, j, 0, 0);
+    image_save(im, "dog_no_red.jpg");
+    image_free(im);
+
+    im = image_load("data/dog.jpg");
+    image_shift(im, 0, 0.4f);
+    image_shift(im, 1, 0.4f);
+    image_shift(im, 2, 0.4f);
+    image_save(im, "overflow.jpg");
+    image_clamp(im);
+    image_save(im, "fixed.jpg");
+    image_free(im);
+
+    im = image_load("data/colorbar.png");
+    Image graybar = image_rgb_to_grayscale(im);
+    image_save(graybar, "graybar.jpg");
+    image_free(graybar);
+    image_free(im);
+
+    return true;
+
     Canvas canvas = canvas_new("raster", 1280, 720);
 
     std::vector<std::vector<int32_t>> mouse_segments;
     std::vector<int32_t> triangles;
 
-    bool paint = false;
-    bool grid  = false;
-
+    bool paint  = false;
+    bool grid   = false;
     float scale = 1.0f;
+
+    Cam cam = cam_new();
+
     while (canvas_loop(canvas))
     {
         char buffer[1000];
@@ -30,6 +61,12 @@ int WinMain(
             grid = !grid;
         if (canvas.input.key_p.pressed)
             paint = !paint;
+
+        if (canvas.input.key_space.down)
+        {
+            cam.t.position.z += canvas.input.mouse_dy;
+        }
+
 
         if (paint)
         {
@@ -75,8 +112,56 @@ int WinMain(
             }
         }
 
+        Mat4 view_proj = cam_view_proj(cam);
         // rendering
         raster_clear(canvas.framebuffer, canvas.width, canvas.height, 30, 30, 30);
+
+        for (int i = -10; i <= 10; ++i)
+        {
+            Vec3 p0 = Vec3{(float)i, -10, -40};
+            Vec3 p1 = Vec3{(float)i, -10, -20};
+
+            p0 = mat4_transform_proj_point(view_proj, p0);
+            p1 = mat4_transform_proj_point(view_proj, p1);
+
+            if (
+                p0.x >= -1 && p0.x <= 1 && p0.y >= -1 && p0.y <= 1 &&
+                p1.x >= -1 && p1.x <= 1 && p1.y >= -1 && p1.y <= 1)
+            {
+                int32_t x0 = (int32_t)((p0.x + 1) * 0.5f * (canvas.width - 1));
+                int32_t y0 = (int32_t)((1.0f - (p0.y + 1) * 0.5f) * (canvas.height - 1));
+                int32_t x1 = (int32_t)((p1.x + 1) * 0.5f * (canvas.width - 1));
+                int32_t y1 = (int32_t)((1.0f - (p1.y + 1) * 0.5f) * (canvas.height - 1));
+
+                raster_line(
+                    canvas.framebuffer, canvas.width, canvas.height,
+                    x0, y0, x1, y1,
+                    50, 100, 150);
+            }
+        }
+        for (int i = -20; i >= -40; --i)
+        {
+            Vec3 p0 = Vec3{-10, -10, (float)(i)};
+            Vec3 p1 = Vec3{ 10, -10, (float)(i)};
+
+            p0 = mat4_transform_proj_point(view_proj, p0);
+            p1 = mat4_transform_proj_point(view_proj, p1);
+
+            if (
+                p0.x >= -1 && p0.x <= 1 && p0.y >= -1 && p0.y <= 1 &&
+                p1.x >= -1 && p1.x <= 1 && p1.y >= -1 && p1.y <= 1)
+            {
+                int32_t x0 = (int32_t)((p0.x + 1) * 0.5f * (canvas.width - 1));
+                int32_t y0 = (int32_t)((1.0f - (p0.y + 1) * 0.5f) * (canvas.height - 1));
+                int32_t x1 = (int32_t)((p1.x + 1) * 0.5f * (canvas.width - 1));
+                int32_t y1 = (int32_t)((1.0f - (p1.y + 1) * 0.5f) * (canvas.height - 1));
+
+                raster_line(
+                    canvas.framebuffer, canvas.width, canvas.height,
+                    x0, y0, x1, y1,
+                    50, 100, 150);
+            }
+        }
 
         for (size_t i = 5; i < triangles.size(); i += 6)
         {
