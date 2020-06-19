@@ -5,9 +5,25 @@
 
 #include "raster/Vec3.h"
 #include "raster/Mat4.h"
+#include "raster/stb_image.h"
 
 #include <Windows.h>
 #include <vector>
+#include <string>
+#include <chrono>
+
+uint8_t *
+atlas_load(const char *filename, int channels = 0)
+{
+    int w, h, c;
+    uint8_t *data = stbi_load(filename, &w, &h, &c, channels);
+    if (!data)
+    {
+        fprintf(stderr, "Cannot load image \"%s\"\nSTB Reason: %s\n", filename, stbi_failure_reason());
+        exit(0);
+    }
+    return data;
+}
 
 int WinMain(
     HINSTANCE hInstance,
@@ -16,11 +32,16 @@ int WinMain(
     int       nShowCmd
 )
 {
+    /*
     Image im = image_load("data/dog.jpg");
     for (int j = 0; j < im.h; ++j)
         for (int i = 0; i < im.w; ++i)
             image_pixel_set(im, i, j, 0, 0);
     image_save(im, "dog_no_red.jpg");
+    image_free(im);
+
+    im = image_load("consolas.bmp");
+    image_save(im, "consolas.jpg");
     image_free(im);
 
     im = image_load("data/dog.jpg");
@@ -39,6 +60,9 @@ int WinMain(
     image_free(im);
 
     return true;
+    */
+
+    uint8_t *atlas = atlas_load("consolas.bmp", 4);
 
     Canvas canvas = canvas_new("raster", 1280, 720);
 
@@ -51,11 +75,13 @@ int WinMain(
 
     Cam cam = cam_new();
 
+    std::chrono::time_point<std::chrono::system_clock> start, end; 
+    start = std::chrono::system_clock::now(); 
+
     while (canvas_loop(canvas))
     {
-        char buffer[1000];
-        wsprintf(buffer, "%d\n", canvas.input.mouse_wheel);
-        OutputDebugString(buffer);
+		char debug_buffer[2048] = {};
+
 
         if (canvas.input.key_g.pressed)
             grid = !grid;
@@ -66,7 +92,6 @@ int WinMain(
         {
             cam.t.position.z += canvas.input.mouse_dy;
         }
-
 
         if (paint)
         {
@@ -116,50 +141,53 @@ int WinMain(
         // rendering
         raster_clear(canvas.framebuffer, canvas.width, canvas.height, 30, 30, 30);
 
-        for (int i = -10; i <= 10; ++i)
+        if (!grid)
         {
-            Vec3 p0 = Vec3{(float)i, -10, -40};
-            Vec3 p1 = Vec3{(float)i, -10, -20};
-
-            p0 = mat4_transform_proj_point(view_proj, p0);
-            p1 = mat4_transform_proj_point(view_proj, p1);
-
-            if (
-                p0.x >= -1 && p0.x <= 1 && p0.y >= -1 && p0.y <= 1 &&
-                p1.x >= -1 && p1.x <= 1 && p1.y >= -1 && p1.y <= 1)
+            for (int i = -10; i <= 10; ++i)
             {
-                int32_t x0 = (int32_t)((p0.x + 1) * 0.5f * (canvas.width - 1));
-                int32_t y0 = (int32_t)((1.0f - (p0.y + 1) * 0.5f) * (canvas.height - 1));
-                int32_t x1 = (int32_t)((p1.x + 1) * 0.5f * (canvas.width - 1));
-                int32_t y1 = (int32_t)((1.0f - (p1.y + 1) * 0.5f) * (canvas.height - 1));
+                Vec3 p0 = Vec3{ (float)i, -10, -40 };
+                Vec3 p1 = Vec3{ (float)i, -10, -20 };
 
-                raster_line(
-                    canvas.framebuffer, canvas.width, canvas.height,
-                    x0, y0, x1, y1,
-                    50, 100, 150);
+                p0 = mat4_transform_proj_point(view_proj, p0);
+                p1 = mat4_transform_proj_point(view_proj, p1);
+
+                if (
+                    p0.x >= -1 && p0.x <= 1 && p0.y >= -1 && p0.y <= 1 &&
+                    p1.x >= -1 && p1.x <= 1 && p1.y >= -1 && p1.y <= 1)
+                {
+                    int32_t x0 = (int32_t)((p0.x + 1) * 0.5f * (canvas.width - 1));
+                    int32_t y0 = (int32_t)((1.0f - (p0.y + 1) * 0.5f) * (canvas.height - 1));
+                    int32_t x1 = (int32_t)((p1.x + 1) * 0.5f * (canvas.width - 1));
+                    int32_t y1 = (int32_t)((1.0f - (p1.y + 1) * 0.5f) * (canvas.height - 1));
+
+                    raster_line(
+                        canvas.framebuffer, canvas.width, canvas.height,
+                        x0, y0, x1, y1,
+                        50, 100, 150);
+                }
             }
-        }
-        for (int i = -20; i >= -40; --i)
-        {
-            Vec3 p0 = Vec3{-10, -10, (float)(i)};
-            Vec3 p1 = Vec3{ 10, -10, (float)(i)};
-
-            p0 = mat4_transform_proj_point(view_proj, p0);
-            p1 = mat4_transform_proj_point(view_proj, p1);
-
-            if (
-                p0.x >= -1 && p0.x <= 1 && p0.y >= -1 && p0.y <= 1 &&
-                p1.x >= -1 && p1.x <= 1 && p1.y >= -1 && p1.y <= 1)
+            for (int i = -20; i >= -40; --i)
             {
-                int32_t x0 = (int32_t)((p0.x + 1) * 0.5f * (canvas.width - 1));
-                int32_t y0 = (int32_t)((1.0f - (p0.y + 1) * 0.5f) * (canvas.height - 1));
-                int32_t x1 = (int32_t)((p1.x + 1) * 0.5f * (canvas.width - 1));
-                int32_t y1 = (int32_t)((1.0f - (p1.y + 1) * 0.5f) * (canvas.height - 1));
+                Vec3 p0 = Vec3{ -10, -10, (float)(i) };
+                Vec3 p1 = Vec3{ 10, -10, (float)(i) };
 
-                raster_line(
-                    canvas.framebuffer, canvas.width, canvas.height,
-                    x0, y0, x1, y1,
-                    50, 100, 150);
+                p0 = mat4_transform_proj_point(view_proj, p0);
+                p1 = mat4_transform_proj_point(view_proj, p1);
+
+                if (
+                    p0.x >= -1 && p0.x <= 1 && p0.y >= -1 && p0.y <= 1 &&
+                    p1.x >= -1 && p1.x <= 1 && p1.y >= -1 && p1.y <= 1)
+                {
+                    int32_t x0 = (int32_t)((p0.x + 1) * 0.5f * (canvas.width - 1));
+                    int32_t y0 = (int32_t)((1.0f - (p0.y + 1) * 0.5f) * (canvas.height - 1));
+                    int32_t x1 = (int32_t)((p1.x + 1) * 0.5f * (canvas.width - 1));
+                    int32_t y1 = (int32_t)((1.0f - (p1.y + 1) * 0.5f) * (canvas.height - 1));
+
+                    raster_line(
+                        canvas.framebuffer, canvas.width, canvas.height,
+                        x0, y0, x1, y1,
+                        50, 100, 150);
+                }
             }
         }
 
@@ -220,7 +248,24 @@ int WinMain(
         if (grid)
             raster_grid(canvas.framebuffer, canvas.width, canvas.height);
 
+        end = std::chrono::system_clock::now(); 
+        std::chrono::duration<double> elapsed_seconds = end - start; 
+
+        sprintf(debug_buffer,
+            "fps: %f\nmouse pos: (%d, %d)\ncamera pos: (%f, %f, %f)\ngrid 2d: %d\npaint: %d",
+            1.0f / elapsed_seconds.count(),
+            canvas.input.mouse_x, canvas.input.mouse_y,
+            cam.t.position.x, cam.t.position.y, cam.t.position.z,
+            grid, paint);
+
+        raster_text(
+            canvas.framebuffer, canvas.width, canvas.height,
+            10, 10,
+            atlas, debug_buffer);
+
         canvas_flush(canvas);
+
+        start = std::chrono::system_clock::now(); 
     }
 
     canvas_free(canvas);

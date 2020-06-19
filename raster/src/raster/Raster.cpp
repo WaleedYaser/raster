@@ -15,6 +15,53 @@ raster_clear(uint8_t *framebuffer, uint32_t width, uint32_t height, uint8_t r, u
 }
 
 void
+raster_text(
+    uint8_t *framebuffer, uint32_t width, uint32_t height,
+    int32_t x, int32_t y,
+    uint8_t *atlas, const char *text)
+{
+    int x_init = x;
+
+    while (uint8_t c = *text++)
+    {
+        if (c == '\n')
+        {
+            y += 20;
+            x = x_init;
+            continue;
+        }
+        if (c == ' ')
+        {
+            x += 9;
+            continue;
+        }
+
+		uint8_t index = c - 32;
+        int32_t x_min = (index % 16) * 16;
+        int32_t y_min = (index / 16) * 32;
+        int32_t x_max = x_min + 9;
+        int32_t y_max = y_min + 20;
+
+        for (int j = 0; j < 20; ++j)
+        {
+            for (int i = 0; i < 9; ++i)
+            {
+                int32_t dst_index = ((x + i) + ((y + j) * width)) * 4;
+                int32_t src_index = ((x_min + i) + ((y_min + j) * 256)) * 4;
+
+                if (atlas[src_index])
+                {
+                    framebuffer[dst_index    ] = atlas[src_index];
+                    framebuffer[dst_index + 1] = atlas[src_index + 1];
+                    framebuffer[dst_index + 2] = atlas[src_index + 2];
+                }
+            }
+        }
+        x += 9;
+    }
+}
+
+void
 raster_hline(
     uint8_t *framebuffer, uint32_t width, uint32_t height,
     int32_t y, int32_t x0, int32_t x1,

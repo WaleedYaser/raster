@@ -56,7 +56,6 @@ image_load(const char *filename, int channels)
 
     free(data);
     return self;
-
 }
 
 void
