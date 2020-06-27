@@ -2,11 +2,11 @@
 #include "raster/stb_image.h"
 #include "raster/stb_image_write.h"
 
-#include <stdlib.h>
 #include <assert.h>
-#include <stdint.h>
 #include <math.h>
-#include <vcruntime_string.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 Image
 image_new(int w, int h, int c)
@@ -117,13 +117,62 @@ image_rgb_to_grayscale(const Image &self)
 void
 image_rgb_to_hsv(Image &self)
 {
-    // TODO
+    for (int i = 0; i < self.w * self.h; ++i)
+    {
+        float r = self.data[i + self.w * self.h * 0];
+        float g = self.data[i + self.w * self.h * 1];
+        float b = self.data[i + self.w * self.h * 2];
+
+        float v = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
+        float m = (r < g) ? ((r < b) ? r : b) : ((g < b) ? g : b);
+        float c = v - m;
+
+        float s = 0;
+        if (v != 0)
+        {
+            s = c / v;
+        }
+
+        float h = 0;
+        if (c != 0)
+        {
+            if (v == r)
+                h = (g - b) / c;
+            else if (v == g)
+                h = (b - r) / c + 2;
+            else if (v == b)
+                h = (r - g) / c + 4;
+
+            if (h < 0)
+                h = h / 6 + 1;
+            else
+                h = h / 6;
+        }
+
+        self.data[i + self.w * self.h * 0] = h;
+        self.data[i + self.w * self.h * 1] = s;
+        self.data[i + self.w * self.h * 2] = v;
+    }
 }
 
 void
 image_hsv_to_rgb(Image &self)
 {
-    // TODO
+    for (int i = 0; i < self.w * self.h; ++i)
+    {
+        float h = self.data[i + self.w * self.h * 0];
+        float s = self.data[i + self.w * self.h * 1];
+        float v = self.data[i + self.w * self.h * 2];
+
+        // TODO(Waleed): convert hsv to rgb
+        float r = h;
+        float g = s;
+        float b = v;
+
+        self.data[i + self.w * self.h * 0] = r;
+        self.data[i + self.w * self.h * 1] = g;
+        self.data[i + self.w * self.h * 2] = b;
+    }
 }
 
 void
