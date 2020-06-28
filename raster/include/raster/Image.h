@@ -24,16 +24,19 @@ image_clone(const Image &self);
 Image
 image_rgb_to_grayscale(const Image &self);
 
-Image
-image_rgb_to_hsv(const Image &self);
+Image &
+image_rgb_to_hsv(Image &self);
 
-Image
-image_hsv_to_rgb(const Image &self);
+Image &
+image_hsv_to_rgb(Image &self);
 
-void
+Image &
 image_shift(Image &self, int c, float v);
 
-void
+Image &
+image_scale(Image &self, int c, float v);
+
+Image &
 image_clamp(Image &self);
 
 inline bool

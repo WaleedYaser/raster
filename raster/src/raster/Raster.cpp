@@ -36,11 +36,9 @@ raster_text(
             continue;
         }
 
-		uint8_t index = c - 32;
+        uint8_t index = c - ' ';
         int32_t x_min = (index % 16) * 16;
         int32_t y_min = (index / 16) * 32;
-        int32_t x_max = x_min + 9;
-        int32_t y_max = y_min + 20;
 
         for (int j = 0; j < 20; ++j)
         {

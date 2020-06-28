@@ -32,7 +32,6 @@ int WinMain(
     int       nShowCmd
 )
 {
-    /*
     Image im = image_load("data/dog.jpg");
     for (int j = 0; j < im.h; ++j)
         for (int i = 0; i < im.w; ++i)
@@ -59,8 +58,16 @@ int WinMain(
     image_free(graybar);
     image_free(im);
 
+    im = image_load("data/dog.jpg");
+    image_rgb_to_hsv(im);
+    image_scale(im, 1, 2);
+    // image_shift(im, 1, 0.2f);
+    image_clamp(im);
+    image_hsv_to_rgb(im);
+    image_save(im, "dog_saturated.jpg");
+    image_free(im);
+
     return true;
-    */
 
     uint8_t *atlas = atlas_load("consolas.bmp", 4);
 
@@ -75,12 +82,12 @@ int WinMain(
 
     Cam cam = cam_new();
 
-    std::chrono::time_point<std::chrono::system_clock> start, end; 
-    start = std::chrono::system_clock::now(); 
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
 
     while (canvas_loop(canvas))
     {
-		char debug_buffer[2048] = {};
+        char debug_buffer[2048] = {};
 
 
         if (canvas.input.key_g.pressed)
@@ -248,8 +255,8 @@ int WinMain(
         if (grid)
             raster_grid(canvas.framebuffer, canvas.width, canvas.height);
 
-        end = std::chrono::system_clock::now(); 
-        std::chrono::duration<double> elapsed_seconds = end - start; 
+        end = std::chrono::system_clock::now();
+        std::chrono::duration<double> elapsed_seconds = end - start;
 
         sprintf(debug_buffer,
             "fps: %f\nmouse pos: (%d, %d)\ncamera pos: (%f, %f, %f)\ngrid 2d: %d\npaint: %d",
@@ -265,7 +272,7 @@ int WinMain(
 
         canvas_flush(canvas);
 
-        start = std::chrono::system_clock::now(); 
+        start = std::chrono::system_clock::now();
     }
 
     canvas_free(canvas);

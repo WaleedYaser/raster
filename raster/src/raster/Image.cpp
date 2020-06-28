@@ -114,7 +114,7 @@ image_rgb_to_grayscale(const Image &self)
     return gray;
 }
 
-void
+Image &
 image_rgb_to_hsv(Image &self)
 {
     for (int i = 0; i < self.w * self.h; ++i)
@@ -153,38 +153,95 @@ image_rgb_to_hsv(Image &self)
         self.data[i + self.w * self.h * 1] = s;
         self.data[i + self.w * self.h * 2] = v;
     }
+    return self;
 }
 
-void
+Image &
 image_hsv_to_rgb(Image &self)
 {
     for (int i = 0; i < self.w * self.h; ++i)
     {
-        float h = self.data[i + self.w * self.h * 0];
+        float h = self.data[i + self.w * self.h * 0] * 6;
         float s = self.data[i + self.w * self.h * 1];
         float v = self.data[i + self.w * self.h * 2];
 
-        // TODO(Waleed): convert hsv to rgb
-        float r = h;
-        float g = s;
-        float b = v;
+        float c = v * s;
+        float x = c * (1 - fabs((fmod(h, 2) - 1.0f)));
+        float m = v - c;
+
+        float r, g, b;
+        if (h >= 0 && h <= 1)
+        {
+            r = c + m;
+            g = x + m;
+            b = 0 + m;
+        }
+        else if (h > 1 && h <= 2)
+        {
+            r = x + m;
+            g = c + m;
+            b = 0 + m;
+        }
+        else if (h > 2 && h <= 3)
+        {
+            r = 0 + m;
+            g = c + m;
+            b = x + m;
+        }
+        else if (h > 3 && h <= 4)
+        {
+            r = 0 + m;
+            g = x + m;
+            b = c + m;
+        }
+        else if (h > 4 && h <= 5)
+        {
+            r = x + m;
+            g = 0 + m;
+            b = c + m;
+        }
+        else if (h > 5 && h <= 6)
+        {
+            r = c + m;
+            g = 0 + m;
+            b = x + m;
+        }
+        else
+        {
+            r = 0;
+            g = 0;
+            b = 0;
+        }
 
         self.data[i + self.w * self.h * 0] = r;
         self.data[i + self.w * self.h * 1] = g;
         self.data[i + self.w * self.h * 2] = b;
     }
+
+    return self;
 }
 
-void
+Image &
 image_shift(Image &self, int c, float v)
 {
     for (int i = 0; i < self.w * self.h; ++i)
     {
         self.data[i + self.w * self.h * c] += v;
     }
+    return self;
 }
 
-void
+Image &
+image_scale(Image &self, int c, float v)
+{
+    for (int i = 0; i < self.w * self.h; ++i)
+    {
+        self.data[i + self.w * self.h * c] *= v;
+    }
+    return self;
+}
+
+Image &
 image_clamp(Image &self)
 {
     for (int i = 0; i < self.w * self.h * self.c; ++i)
@@ -194,4 +251,5 @@ image_clamp(Image &self)
         else if (v > 1) v = 1.0f;
         self.data[i] = v;
     }
+    return self;
 }
