@@ -39,39 +39,32 @@ image_scale(Image &self, int c, float v);
 Image &
 image_clamp(Image &self);
 
-inline bool
-between(int n, int min, int max)
-{
-    return (n >= min && n <= max);
-}
+float
+image_pixel(const Image &self, int x, int y, int c);
 
-inline int
-clamp(int n, int min, int max)
-{
-    if (n < min)
-        return min;
-    else if (n > max)
-        return max;
+void
+image_pixel_set(Image &self, int x, int y, int c, float v);
 
-    return n;
-}
+Image
+image_channel(Image &self, int c);
 
-inline float
-image_pixel(const Image &self, int x, int y, int c)
-{
-    x = clamp(x, 0, self.w - 1);
-    y = clamp(y, 0, self.h - 1);
+bool
+image_same(const Image &a, const Image &b);
 
-    int index = x + y * self.w + c * self.w * self.h;
-    return self.data[index];
-}
+Image
+image_add(const Image &a, const Image &b);
 
-inline void
-image_pixel_set(Image &self, int x, int y, int c, float v)
-{
-    if (between(x, 0, self.w - 1) && between(y, 0, self.h - 1))
-    {
-        int index = x + y * self.w + c * self.w * self.h;
-        self.data[index] = v;
-    }
-}
+Image
+image_subtract(const Image &a, const Image &b);
+
+float
+image_interpolate_nn(const Image &self, float x, float y, int c);
+
+float
+image_interpolate_bilinear(const Image &self, float x, float y, int c);
+
+Image
+image_resize_nn(const Image &self, int w, int h);
+
+Image
+image_resize_bilinear(const Image &self, int w, int h);

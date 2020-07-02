@@ -8,6 +8,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+inline bool
+between(int n, int min, int max)
+{
+    return (n >= min && n <= max);
+}
+
+inline int
+clamp(int n, int min, int max)
+{
+    if (n < min)
+        return min;
+    else if (n > max)
+        return max;
+
+    return n;
+}
+
+// API
+
 Image
 image_new(int w, int h, int c)
 {
@@ -252,4 +271,134 @@ image_clamp(Image &self)
         self.data[i] = v;
     }
     return self;
+}
+
+float
+image_pixel(const Image &self, int x, int y, int c)
+{
+    x = clamp(x, 0, self.w - 1);
+    y = clamp(y, 0, self.h - 1);
+
+    int index = x + y * self.w + c * self.w * self.h;
+    return self.data[index];
+}
+
+void
+image_pixel_set(Image &self, int x, int y, int c, float v)
+{
+    if (between(x, 0, self.w - 1) && between(y, 0, self.h - 1))
+    {
+        int index = x + y * self.w + c * self.w * self.h;
+        self.data[index] = v;
+    }
+}
+
+Image
+image_channel(Image &self, int c)
+{
+    // TODO(Waleed):
+    return Image{};
+}
+
+bool
+image_same(const Image &a, const Image &b)
+{
+    // TODO(Waleed):
+    return false;
+}
+
+Image
+image_add(const Image &a, const Image &b)
+{
+    // TODO(Waleed):
+    return Image{};
+}
+
+Image
+image_subtract(const Image &a, const Image &b)
+{
+    // TODO(Waleed):
+    return Image{};
+}
+
+float
+image_interpolate_nn(const Image &self, float x, float y, int c)
+{
+    return image_pixel(self, ::roundf(x), ::roundf(y), c);
+}
+
+float
+image_interpolate_bilinear(const Image &self, float x, float y, int c)
+{
+    int xf = ::floorf(x);
+    int xc = ::ceilf(x);
+    int yf = ::floorf(y);
+    int yc = ::ceilf(y);
+
+    float v0 = image_pixel(self, xf, yf, c);
+    float v1 = image_pixel(self, xc, yf, c);
+    float v2 = image_pixel(self, xf, yc, c);
+    float v3 = image_pixel(self, xc, yc, c);
+
+    float dx = x - xf;
+    float dy = y - yf;
+
+    float i0 = dx * v1 + (1 - dx) * v0;
+    float i1 = dx * v2 + (1 - dx) * v3;
+
+    float res = i1 * dy + (1 - dy) * i0;
+
+    return res;
+}
+
+Image
+image_resize_nn(const Image &self, int w, int h)
+{
+    Image res = image_new(w, h, self.c);
+
+    float ax = ((float)self.w) / ((float)res.w);
+    float bx = 0.5f * ((float)(self.w - res.w)) / ((float)res.w);
+
+    float ay = ((float)self.h) / ((float)res.h);
+    float by = 0.5f * ((float)(self.h - res.h)) / ((float)res.h);
+
+    for (int y = 0; y < res.h; ++y)
+    {
+        for (int x = 0; x < res.w; ++x)
+        {
+            float self_x = x * ax + bx;
+            float self_y = y * ay + by;
+            for (int c = 0; c < res.c; ++c)
+            {
+                image_pixel_set(res, x, y, c, image_interpolate_nn(self, self_x, self_y, c));
+            }
+        }
+    }
+    return res;
+}
+
+Image
+image_resize_bilinear(const Image &self, int w, int h)
+{
+    Image res = image_new(w, h, self.c);
+
+    float ax = ((float)self.w) / ((float)res.w);
+    float bx = 0.5f * ((float)(self.w - res.w)) / ((float)res.w);
+
+    float ay = ((float)self.h) / ((float)res.h);
+    float by = 0.5f * ((float)(self.h - res.h)) / ((float)res.h);
+
+    for (int y = 0; y < res.h; ++y)
+    {
+        for (int x = 0; x < res.w; ++x)
+        {
+            float self_x = x * ax + bx;
+            float self_y = y * ay + by;
+            for (int c = 0; c < res.c; ++c)
+            {
+                image_pixel_set(res, x, y, c, image_interpolate_bilinear(self, self_x, self_y, c));
+            }
+        }
+    }
+    return res;
 }

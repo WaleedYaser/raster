@@ -32,39 +32,16 @@ int WinMain(
     int       nShowCmd
 )
 {
-    Image im = image_load("data/dog.jpg");
-    for (int j = 0; j < im.h; ++j)
-        for (int i = 0; i < im.w; ++i)
-            image_pixel_set(im, i, j, 0, 0);
-    image_save(im, "dog_no_red.jpg");
-    image_free(im);
+    Image im = image_load("data/dogsmall.jpg");
 
-    im = image_load("consolas.bmp");
-    image_save(im, "consolas.jpg");
-    image_free(im);
+    Image a = image_resize_nn(im, im.w * 4, im.h * 4);
+    image_save(a, "dog4x-nn.jpg");
+    image_free(a);
 
-    im = image_load("data/dog.jpg");
-    image_shift(im, 0, 0.4f);
-    image_shift(im, 1, 0.4f);
-    image_shift(im, 2, 0.4f);
-    image_save(im, "overflow.jpg");
-    image_clamp(im);
-    image_save(im, "fixed.jpg");
-    image_free(im);
+    a = image_resize_bilinear(im, im.w * 4, im.h * 4);
+    image_save(a, "dog4x-bl.jpg");
+    image_free(a);
 
-    im = image_load("data/colorbar.png");
-    Image graybar = image_rgb_to_grayscale(im);
-    image_save(graybar, "graybar.jpg");
-    image_free(graybar);
-    image_free(im);
-
-    im = image_load("data/dog.jpg");
-    image_rgb_to_hsv(im);
-    image_scale(im, 1, 2);
-    // image_shift(im, 1, 0.2f);
-    image_clamp(im);
-    image_hsv_to_rgb(im);
-    image_save(im, "dog_saturated.jpg");
     image_free(im);
 
     return true;
