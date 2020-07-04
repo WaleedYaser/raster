@@ -3,6 +3,7 @@
 #include "raster/stb_image_write.h"
 
 #include <assert.h>
+#include <float.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -567,33 +568,125 @@ image_filter_guassian(float sigma)
 Image
 image_filter_gx()
 {
-    return Image{};
+    Image res = image_new(3, 3, 1);
+    float k[] = {
+        -1,  0,  1,
+        -2,  0,  2,
+        -1,  0,  1};
+    for (int i = 0; i < 9; ++i)
+        res.data[i] = k[i];
+    return res;
 }
 
 Image
 image_filter_gy()
 {
-    return Image{};
+    Image res = image_new(3, 3, 1);
+    float k[] = {
+        -1, -2, -1,
+         0,  0,  0,
+         1,  2,  1};
+    for (int i = 0; i < 9; ++i)
+        res.data[i] = k[i];
+    return res;
 }
 
 void
-image_feature_normalize(Image self)
+image_feature_normalize(Image &self)
 {
+    float min = FLT_MAX;
+    float max = -FLT_MAX;
+    for (int i = 0; i < self.w * self.h * self.c; ++i)
+    {
+        if (self.data[i] < min)
+            min = self.data[i];
+        if (self.data[i] > max)
+            max = self.data[i];
+    }
+
+    float delta = max - min;
+    if (delta != 0)
+        delta = 1 / delta;
+    for (int i = 0; i < self.w * self.h * self.c; ++i)
+    {
+        self.data[i] = (self.data[i] - min) * delta;
+    }
 }
 
 void
-image_threshold(Image self, float trheshold)
+image_threshold(Image &self, float trheshold)
 {
 }
 
 Image
-image_sobel(Image self)
+image_sobel_magnitude(const Image &self)
 {
-    return Image{};
+    Image gx = image_filter_gx();
+    Image gy = image_filter_gy();
+
+    Image res_gx = image_conv(self, gx, false);
+    Image res_gy = image_conv(self, gy, false);
+
+    Image res = image_new(self.w, self.h, 1);
+    for (int i = 0; i < res.w * res.h; ++i)
+    {
+        res.data[i] = ::sqrtf(res_gx.data[i] * res_gx.data[i] + res_gy.data[i] * res_gy.data[i]);
+    }
+
+    image_free(res_gy);
+    image_free(res_gx);
+    image_free(gy);
+    image_free(gx);
+
+    return res;
 }
 
 Image
-image_sobel_colorize(Image self)
+image_sobel_angle(const Image &self)
 {
-    return Image{};
+    Image gx = image_filter_gx();
+    Image gy = image_filter_gy();
+
+    Image res_gx = image_conv(self, gx, false);
+    Image res_gy = image_conv(self, gy, false);
+
+    Image res = image_new(self.w, self.h, 1);
+    for (int i = 0; i < res.w * res.h; ++i)
+    {
+        res.data[i] = ::atan2f(res_gy.data[i], res_gx.data[i]);
+    }
+
+    image_free(res_gy);
+    image_free(res_gx);
+    image_free(gy);
+    image_free(gx);
+
+    return res;
+}
+
+Image
+image_sobel_colorize(const Image &self)
+{
+    Image mag   = image_sobel_magnitude(self);
+    image_feature_normalize(mag);
+    Image angle = image_sobel_angle(self);
+    image_feature_normalize(angle);
+
+    Image res = image_new(self.w, self.h, 3);
+    for (int y = 0; y < res.h; ++y)
+    {
+        for (int x = 0; x < res.w; ++x)
+        {
+            res.data[x + y * res.w + 0 * res.w * res.h] = angle.data[x + y * angle.w];
+            res.data[x + y * res.w + 1 * res.w * res.h] = mag.data[x + y * mag.w];
+            res.data[x + y * res.w + 2 * res.w * res.h] = mag.data[x + y * mag.w];
+        }
+    }
+
+    image_hsv_to_rgb(res);
+
+    image_free(angle);
+    image_free(mag);
+
+    return res;
 }

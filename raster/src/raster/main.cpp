@@ -87,6 +87,29 @@ int WinMain(
     image_free(lfreq);
     image_free(f);
 
+    f = image_filter_gx();
+    res = image_conv(im, f, false);
+    image_feature_normalize(res);
+    image_save(res, "dog-gx.jpg");
+    image_free(res);
+    image_free(f);
+
+    f = image_filter_gy();
+    res = image_conv(im, f, false);
+    image_feature_normalize(res);
+    image_save(res, "dog-gy.jpg");
+    image_free(res);
+    image_free(f);
+
+    res = image_sobel_magnitude(im);
+    image_feature_normalize(res);
+    image_save(res, "dog-sobol.jpg");
+    image_free(res);
+
+    res = image_sobel_colorize(im);
+    image_save(res, "dog-sobol-colored.jpg");
+    image_free(res);
+
     image_free(im);
 
     return true;

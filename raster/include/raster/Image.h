@@ -94,13 +94,16 @@ Image
 image_filter_gy();
 
 void
-image_feature_normalize(Image self);
+image_feature_normalize(Image &self);
 
 void
-image_threshold(Image self, float trheshold);
+image_threshold(Image &self, float trheshold);
 
 Image
-image_sobel(Image self);
+image_sobel_magnitude(const Image &self);
 
 Image
-image_sobel_colorize(Image self);
+image_sobel_angle(const Image &self);
+
+Image
+image_sobel_colorize(const Image &self);
