@@ -8,14 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+static constexpr float PI = 3.14159265359f;
+
 inline bool
-between(int n, int min, int max)
+_between(int n, int min, int max)
 {
     return (n >= min && n <= max);
 }
 
 inline int
-clamp(int n, int min, int max)
+_clamp(int n, int min, int max)
 {
     if (n < min)
         return min;
@@ -23,6 +25,22 @@ clamp(int n, int min, int max)
         return max;
 
     return n;
+}
+
+inline void
+_image_l1_normalize(Image &self)
+{
+    float sum = 0;
+    for (int i = 0; i < self.w * self.h * self.c; ++i)
+    {
+        sum += self.data[i];
+    }
+
+    sum = 1.0f / sum;
+    for (int i = 0; i < self.w * self.h * self.c; ++i)
+    {
+        self.data[i] *= sum;
+    }
 }
 
 // API
@@ -276,8 +294,8 @@ image_clamp(Image &self)
 float
 image_pixel(const Image &self, int x, int y, int c)
 {
-    x = clamp(x, 0, self.w - 1);
-    y = clamp(y, 0, self.h - 1);
+    x = _clamp(x, 0, self.w - 1);
+    y = _clamp(y, 0, self.h - 1);
 
     int index = x + y * self.w + c * self.w * self.h;
     return self.data[index];
@@ -286,7 +304,7 @@ image_pixel(const Image &self, int x, int y, int c)
 void
 image_pixel_set(Image &self, int x, int y, int c, float v)
 {
-    if (between(x, 0, self.w - 1) && between(y, 0, self.h - 1))
+    if (_between(x, 0, self.w - 1) && _between(y, 0, self.h - 1))
     {
         int index = x + y * self.w + c * self.w * self.h;
         self.data[index] = v;
@@ -310,15 +328,25 @@ image_same(const Image &a, const Image &b)
 Image
 image_add(const Image &a, const Image &b)
 {
-    // TODO(Waleed):
-    return Image{};
+    assert(a.w == b.w && a.h == b.h && a.c == b.c);
+    Image res = image_new(a.w, a.h, a.c);
+    for (int i = 0; i < a.w * a.h * a.c; i++)
+    {
+        res.data[i] = a.data[i] + b.data[i];
+    }
+    return res;
 }
 
 Image
 image_subtract(const Image &a, const Image &b)
 {
-    // TODO(Waleed):
-    return Image{};
+    assert(a.w == b.w && a.h == b.h && a.c == b.c);
+    Image res = image_new(a.w, a.h, a.c);
+    for (int i = 0; i < a.w * a.h * a.c; i++)
+    {
+        res.data[i] = a.data[i] - b.data[i];
+    }
+    return res;
 }
 
 float
@@ -344,7 +372,7 @@ image_interpolate_bilinear(const Image &self, float x, float y, int c)
     float dy = y - yf;
 
     float i0 = dx * v1 + (1 - dx) * v0;
-    float i1 = dx * v2 + (1 - dx) * v3;
+    float i1 = dx * v3 + (1 - dx) * v2;
 
     float res = i1 * dy + (1 - dy) * i0;
 
@@ -516,7 +544,24 @@ image_filter_emboss()
 Image
 image_filter_guassian(float sigma)
 {
-    return Image{};
+    Image res = image_new(6 * sigma + 1, 6 * sigma + 1, 1);
+
+    float c1 = 1.0f / (float)(2 * sigma * sigma);
+    float c2 = c1 / PI;
+    for (int y = 0; y < res.h; ++y)
+    {
+        for (int x = 0; x < res.w; ++x)
+        {
+            int xx = -res.w / 2 + x;
+            int yy = -res.h / 2 + y;
+            float v = c2 * ::expf(-(xx * xx + yy * yy) * c1);
+            res.data[x + y * res.w] = v;
+        }
+    }
+
+    _image_l1_normalize(res);
+
+    return res;
 }
 
 Image

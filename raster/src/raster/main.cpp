@@ -75,6 +75,18 @@ int WinMain(
     image_free(res);
     image_free(f);
 
+    f = image_filter_guassian(2);
+    Image lfreq = image_conv(im, f, true);
+    Image hfreq = image_subtract(im, lfreq);
+    Image reconstruct = image_add(lfreq, hfreq);
+    image_save(lfreq, "low-frequency.jpg");
+    image_save(hfreq, "high-frequency.jpg");
+    image_save(reconstruct, "reconstruct.jpg");
+    image_free(reconstruct);
+    image_free(hfreq);
+    image_free(lfreq);
+    image_free(f);
+
     image_free(im);
 
     return true;
