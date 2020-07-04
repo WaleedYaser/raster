@@ -68,3 +68,39 @@ image_resize_nn(const Image &self, int w, int h);
 
 Image
 image_resize_bilinear(const Image &self, int w, int h);
+
+Image
+image_conv(const Image &self, const Image &filter, bool preserve);
+
+Image
+image_filter_box(int w);
+
+Image
+image_filter_highpass();
+
+Image
+image_filter_sharpen();
+
+Image
+image_filter_emboss();
+
+Image
+image_filter_quassian(float sigma);
+
+Image
+image_filter_gx();
+
+Image
+image_filter_gy();
+
+void
+image_feature_normalize(Image self);
+
+void
+image_threshold(Image self, float trheshold);
+
+Image
+image_sobel(Image self);
+
+Image
+image_sobel_colorize(Image self);

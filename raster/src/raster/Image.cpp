@@ -402,3 +402,132 @@ image_resize_bilinear(const Image &self, int w, int h)
     }
     return res;
 }
+
+Image
+image_conv(const Image &self, const Image &filter, bool preserve)
+{
+    Image res = image_new(self.w, self.h, preserve ? self.c : 1);
+
+    if (filter.c == self.c || filter.c == 1)
+    {
+        if (preserve)
+        {
+            for (int c = 0; c < self.c; ++c)
+            {
+                for (int y = 0; y < self.h; ++y)
+                {
+                    for (int x = 0; x < self.w; ++x)
+                    {
+                        float v = 0;
+                        for (int yy = 0; yy < filter.h; ++yy)
+                        {
+                            for (int xx = 0; xx < filter.w; ++xx)
+                            {
+                                v += image_pixel(filter, xx, yy, filter.c == 1 ? 0 : c) *
+                                     image_pixel(self, x + xx - filter.w / 2, y + yy - filter.h / 2, c);
+                            }
+                        }
+                        image_pixel_set(res, x, y, c, v);
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int y = 0; y < self.h; ++y)
+            {
+                for (int x = 0; x < self.w; ++x)
+                {
+                    float v = 0;
+                    for (int yy = 0; yy < filter.h; ++yy)
+                    {
+                        for (int xx = 0; xx < filter.w; ++xx)
+                        {
+                            for (int c = 0; c < self.c; ++c)
+                            {
+                                v += image_pixel(filter, xx, yy, filter.c == 1 ? 0 : c) *
+                                     image_pixel(self, x + xx - filter.w / 2, y + yy - filter.h / 2, c);
+                            }
+                        }
+                    }
+                    image_pixel_set(res, x, y, 0, v);
+                }
+            }
+        }
+    }
+    else
+    {
+        assert(false && "invalid filter size");
+    }
+
+    return res;
+}
+
+Image
+image_filter_box(int w)
+{
+    Image res = image_new(w, w, 1);
+    float v = 1.0f / (float)(w * w);
+    for (int i = 0; i < w * w; ++i)
+        res.data[i] = v;
+
+    return res;
+}
+
+Image
+image_filter_highpass()
+{
+    return Image{};
+}
+
+Image
+image_filter_sharpen()
+{
+    return Image{};
+}
+
+Image
+image_filter_emboss()
+{
+    return Image{};
+}
+
+Image
+image_filter_quassian(float sigma)
+{
+    return Image{};
+}
+
+Image
+image_filter_gx()
+{
+    return Image{};
+}
+
+Image
+image_filter_gy()
+{
+    return Image{};
+}
+
+void
+image_feature_normalize(Image self)
+{
+}
+
+void
+image_threshold(Image self, float trheshold)
+{
+}
+
+Image
+image_sobel(Image self)
+{
+    return Image{};
+}
+
+Image
+image_sobel_colorize(Image self)
+{
+    return Image{};
+}

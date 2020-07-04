@@ -44,6 +44,17 @@ int WinMain(
 
     image_free(im);
 
+    im = image_load("data/dog.jpg");
+    Image f  = image_filter_box(7);
+    Image blur = image_conv(im, f, true);
+    image_save(blur, "dog-box7.jpg");
+    Image thumb = image_resize_nn(blur, blur.w / 7, blur.h / 7);
+    image_save(thumb, "dogthumb.jpg");
+    image_free(thumb);
+    image_free(blur);
+    image_free(f);
+    image_free(im);
+
     return true;
 
     uint8_t *atlas = atlas_load("consolas.bmp", 4);
