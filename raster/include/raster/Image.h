@@ -85,7 +85,7 @@ Image
 image_filter_emboss();
 
 Image
-image_filter_quassian(float sigma);
+image_filter_guassian(float sigma);
 
 Image
 image_filter_gx();

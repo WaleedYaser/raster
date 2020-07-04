@@ -477,23 +477,44 @@ image_filter_box(int w)
 Image
 image_filter_highpass()
 {
-    return Image{};
+    Image res = image_new(3, 3, 1);
+    float k[] = {
+         0, -1,  0,
+        -1,  4, -1,
+         0, -1,  0};
+    for (int i = 0; i < 9; ++i)
+        res.data[i] = k[i];
+    return res;
 }
 
 Image
 image_filter_sharpen()
 {
-    return Image{};
+    Image res = image_new(3, 3, 1);
+    float k[] = {
+         0, -1,  0,
+        -1,  5, -1,
+         0, -1,  0};
+    for (int i = 0; i < 9; ++i)
+        res.data[i] = k[i];
+    return res;
 }
 
 Image
 image_filter_emboss()
 {
-    return Image{};
+    Image res = image_new(3, 3, 1);
+    float k[] = {
+        -2, -1,  0,
+        -1,  1,  1,
+         0,  1,  2};
+    for (int i = 0; i < 9; ++i)
+        res.data[i] = k[i];
+    return res;
 }
 
 Image
-image_filter_quassian(float sigma)
+image_filter_guassian(float sigma)
 {
     return Image{};
 }

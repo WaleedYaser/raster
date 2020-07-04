@@ -53,6 +53,28 @@ int WinMain(
     image_free(thumb);
     image_free(blur);
     image_free(f);
+
+    f = image_filter_highpass();
+    Image res = image_conv(im, f, false);
+    image_clamp(res);
+    image_save(res, "dog-highpass.jpg");
+    image_free(res);
+    image_free(f);
+
+    f = image_filter_sharpen();
+    res = image_conv(im, f, true);
+    image_clamp(res);
+    image_save(res, "dog-sharpen.jpg");
+    image_free(res);
+    image_free(f);
+
+    f = image_filter_emboss();
+    res = image_conv(im, f, true);
+    image_clamp(res);
+    image_save(res, "dog-emboss.jpg");
+    image_free(res);
+    image_free(f);
+
     image_free(im);
 
     return true;
